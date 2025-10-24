@@ -1,40 +1,52 @@
 #!/bin/bash
 
-set -e  # Arrêter en cas d'erreur
+set -e
 
-# Couleurs pour les messages
+# Couleurs
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
-echo -e "${YELLOW}🚀 Déploiement develop → staging${NC}"
+echo -e "${YELLOW}🚀 Déploiement develop → staging (avec auto-stash)${NC}"
 
-# Vérifier si on est dans un repository Git
+# Vérifier repository Git
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
     echo -e "${RED}❌ Ce n'est pas un repository Git${NC}"
     exit 1
 fi
 
-# Vérifier les modifications non commitées
+CURRENT_BRANCH=$(git branch)
+HAS_STASH=false
+
+# Gestion des modifications non commitées
 if ! git diff-index --quiet HEAD --; then
-    echo -e "${RED}❌ Modifications non commitées détectées${NC}"
-    echo "Veuillez commit ou stash vos modifications avant de déployer."
-    git status --short
-    exit 1
+    echo -e "${YELLOW}📦 Modifications non commitées détectées - création stash...${NC}"
+    git stash push -m "Auto-stash: déploiement staging $(date +'%Y-%m-%d %H:%M')"
+    HAS_STASH=true
+    echo -e "${GREEN}✅ Modifications sauvegardées dans stash${NC}"
 fi
 
-# Sauvegarde branche actuelle
-CURRENT_BRANCH=$(git branch)
+# Fonction de nettoyage
+cleanup() {
+    if [ "$HAS_STASH" = true ]; then
+        echo -e "${YELLOW}🔄 Récupération des modifications stashées...${NC}"
+        git stash pop
+        echo -e "${GREEN}✅ Modifications restaurées${NC}"
+    fi
+}
+
+# Exécuter cleanup même en cas d'erreur
+trap cleanup EXIT
+
 echo -e "📋 Branche actuelle: ${GREEN}$CURRENT_BRANCH${NC}"
 
-# Vérifier que develop existe
+# Vérifications des branches
 if ! git show-ref --verify --quiet refs/heads/develop; then
     echo -e "${RED}❌ La branche develop n'existe pas${NC}"
     exit 1
 fi
 
-# Vérifier que staging existe
 if ! git show-ref --verify --quiet refs/heads/staging; then
     echo -e "${RED}❌ La branche staging n'existe pas${NC}"
     exit 1
@@ -47,7 +59,6 @@ echo -e "🔄 Fusion develop → staging..."
 git checkout staging
 git pull origin staging
 
-# Vérifier s'il y a des choses à merger
 if git merge-base --is-ancestor develop staging; then
     echo -e "${YELLOW}📭 Aucun nouveau commit à merger${NC}"
 else
