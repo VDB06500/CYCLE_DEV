@@ -25,7 +25,7 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # Sauvegarde branche actuelle
-CURRENT_BRANCH=$(git branch --show-current)
+CURRENT_BRANCH=$(git branch)
 echo -e "📋 Branche actuelle: ${GREEN}$CURRENT_BRANCH${NC}"
 
 # Vérifier que develop existe
