@@ -4,32 +4,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYCLE_DEV - <span id="env"></span></title>
-    <link rel="stylesheet" href="css/style.css">
+    <title>CYCLE_DEV - Multi-Environnements</title>
+    <link rel="stylesheet" href="css/environment.css">
 </head>
 
 <body>
-    <header>
-        <h1>CYCLE_DEV</h1>
-        <div class="environment-badge" id="env-badge">
-            <span id="env-name"></span>
+    <div class="environment-banner" id="env-banner">
+        <div class="banner-content">
+            <span class="env-name" id="env-name">Chargement...</span>
+            <span class="env-warning" id="env-warning"></span>
         </div>
+    </div>
+
+    <header>
+        <h1>🚀 CYCLE_DEV</h1>
+        <p>Plateforme de développement multi-environnements</p>
     </header>
 
     <main>
-        <section id="features">
-            <h2>Fonctionnalités activées</h2>
-            <div id="features-list"></div>
+        <section class="environment-info">
+            <h2>Informations de l'environnement</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>API</h3>
+                    <p id="api-url">Chargement...</p>
+                </div>
+                <div class="info-card">
+                    <h3>Mode Debug</h3>
+                    <p id="debug-status">Chargement...</p>
+                </div>
+                <div class="info-card">
+                    <h3>Branche Git</h3>
+                    <p id="git-branch">Chargement...</p>
+                </div>
+            </div>
         </section>
 
-        <section id="api-info">
-            <h2>Configuration API</h2>
-            <p>URL: <span id="api-url"></span></p>
-            <p>Debug: <span id="debug-mode"></span></p>
+        <section class="features">
+            <h2>Fonctionnalités</h2>
+            <div class="features-grid" id="features-grid">
+                <!-- Rempli dynamiquement -->
+            </div>
+        </section>
+
+        <section class="deployment-actions">
+            <h2>Actions de déploiement</h2>
+            <div class="actions">
+                <button onclick="simulateDeployment('development')" class="btn btn-dev">
+                    🚀 Déployer en Dev
+                </button>
+                <button onclick="simulateDeployment('staging')" class="btn btn-staging">
+                    🧪 Déployer en Recette
+                </button>
+                <button onclick="simulateDeployment('production')" class="btn btn-prod">
+                    🔴 Déployer en Production
+                </button>
+            </div>
         </section>
     </main>
 
-    <script src="js/config-loader.js"></script>
+    <script src="js/environment.js"></script>
     <script src="js/app.js"></script>
 </body>
 
