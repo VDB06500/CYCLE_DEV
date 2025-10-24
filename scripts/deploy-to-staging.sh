@@ -8,7 +8,7 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${YELLOW}🚀 Déploiement develop → recette${NC}"
+echo -e "${YELLOW}🚀 Déploiement develop → staging${NC}"
 
 # Vérifier si on est dans un repository Git
 if ! git rev-parse --git-dir > /dev/null 2>&1; then
@@ -34,27 +34,27 @@ if ! git show-ref --verify --quiet refs/heads/develop; then
     exit 1
 fi
 
-# Vérifier que recette existe
-if ! git show-ref --verify --quiet refs/heads/recette; then
-    echo -e "${RED}❌ La branche recette n'existe pas${NC}"
+# Vérifier que staging existe
+if ! git show-ref --verify --quiet refs/heads/staging; then
+    echo -e "${RED}❌ La branche staging n'existe pas${NC}"
     exit 1
 fi
 
 echo -e "📥 Mise à jour des branches..."
 git fetch origin
 
-echo -e "🔄 Fusion develop → recette..."
-git checkout recette
-git pull origin recette
+echo -e "🔄 Fusion develop → staging..."
+git checkout staging
+git pull origin staging
 
 # Vérifier s'il y a des choses à merger
-if git merge-base --is-ancestor develop recette; then
+if git merge-base --is-ancestor develop staging; then
     echo -e "${YELLOW}📭 Aucun nouveau commit à merger${NC}"
 else
     git merge develop -m "Auto-deploy: $(date +'%Y-%m-%d %H:%M:%S')"
     echo -e "${GREEN}✅ Merge réussi${NC}"
-    git push origin recette
-    echo -e "${GREEN}🎉 Déploiement recette terminé!${NC}"
+    git push origin staging
+    echo -e "${GREEN}🎉 Déploiement staging terminé!${NC}"
 fi
 
 # Retour à la branche originale
