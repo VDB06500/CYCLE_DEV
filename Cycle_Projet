@@ -1,0 +1,3 @@
+# Créer la structure de dossiers
+mkdir -p CYCLE_DEV/{.github/workflows,src/{css,js,assets/{images,icons}},config,scripts}
+cd CYCLE_DEV

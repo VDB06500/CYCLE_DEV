@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYCLE_DEV - <span id="env"></span></title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <header>
+        <h1>CYCLE_DEV</h1>
+        <div class="environment-badge" id="env-badge">
+            <span id="env-name"></span>
+        </div>
+    </header>
+
+    <main>
+        <section id="features">
+            <h2>Fonctionnalités activées</h2>
+            <div id="features-list"></div>
+        </section>
+
+        <section id="api-info">
+            <h2>Configuration API</h2>
+            <p>URL: <span id="api-url"></span></p>
+            <p>Debug: <span id="debug-mode"></span></p>
+        </section>
+    </main>
+
+    <script src="js/config-loader.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
