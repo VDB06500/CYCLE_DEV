@@ -1,5 +1,5 @@
 #!/bin/bash
-echo "🚀 Déploiement develop → recette"
+echo "🚀 Déploiement develop → staging"
 
 # Sauvegarde de la branche actuelle
 CURRENT_BRANCH=$(git branch)
@@ -16,16 +16,16 @@ fi
 echo "📥 Mise à jour des branches..."
 git fetch origin
 
-# Merge develop vers recette
-echo "🔄 Fusion develop → recette..."
-git checkout recette
-git pull origin recette
+# Merge develop vers staging
+echo "🔄 Fusion develop → staging..."
+git checkout staging
+git pull origin staging
 git merge develop -m "Auto-deploy: $(date +'%Y-%m-%d %H:%M:%S')"
 
 if [ $? -eq 0 ]; then
     echo "✅ Merge réussi"
-    git push origin recette
-    echo "🎉 Déploiement recette terminé avec succès!"
+    git push origin staging
+    echo "🎉 Déploiement staging terminé avec succès!"
 else
     echo "❌ Conflits détectés - Résolution manuelle nécessaire"
     git merge --abort
