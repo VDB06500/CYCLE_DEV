@@ -35,7 +35,7 @@ function simulateDeployment(targetEnv) {
 
 function deployStaging() {
     if (confirm("🧪 Déployer cette version en recette pour tests?")) {
-        fetch('deploy-staging.php')
+        fetch('../../scripts/deploy-staging.sh')
             .then(response => response.text())
             .then(data => {
                 alert(`Résultat du déploiement:\n${data}`);
