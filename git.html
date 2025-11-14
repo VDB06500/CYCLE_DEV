@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moniteur de Déploiement - develop → staging</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e293b 0%, #581c87 50%, #1e293b 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #fff;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #c084fc;
+            font-size: 1.1rem;
+        }
+
+        .branches-visual {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .branch {
+            text-align: center;
+            flex: 0 0 150px;
+        }
+
+        .branch-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 10px;
+            font-size: 2.5rem;
+            border: 3px solid;
+        }
+
+        .branch-circle.develop {
+            background: rgba(34, 197, 94, 0.2);
+            border-color: #22c55e;
+        }
+
+        .branch-circle.staging {
+            background: rgba(59, 130, 246, 0.2);
+            border-color: #3b82f6;
+        }
+
+        .branch-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .branch-label {
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        .arrow-container {
+            flex: 1;
+            position: relative;
+            height: 4px;
+            background: rgba(168, 85, 247, 0.3);
+            border-radius: 2px;
+        }
+
+        .arrow-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: #a855f7;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .arrow-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 2rem;
+            color: #a855f7;
+        }
+
+        .diagram-section {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .diagram-section h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .diagram-box {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 20px;
+            font-family: 'Courier New', monospace;
+            white-space: pre-line;
+            line-height: 1.8;
+        }
+
+        .steps-container {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .steps-container h2 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            background: rgba(51, 65, 85, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .step.completed {
+            background: rgba(34, 197, 94, 0.1);
+        }
+
+        .step.active {
+            background: rgba(168, 85, 247, 0.2);
+            border: 1px solid rgba(168, 85, 247, 0.5);
+        }
+
+        .step.error {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .step-icon {
+            font-size: 1.5rem;
+            width: 30px;
+            text-align: center;
+        }
+
+        .step-name {
+            flex: 1;
+            font-weight: 500;
+        }
+
+        .step.completed .step-name {
+            color: #22c55e;
+        }
+
+        .step.active .step-name {
+            color: #c084fc;
+        }
+
+        .step.error .step-name {
+            color: #ef4444;
+        }
+
+        .console {
+            background: rgba(30, 41, 59, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+        }
+
+        .console h2 {
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+        }
+
+        .console-output {
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 8px;
+            padding: 15px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .console-output::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .console-output::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 4px;
+        }
+
+        .console-output::-webkit-scrollbar-thumb {
+            background: #a855f7;
+            border-radius: 4px;
+        }
+
+        .log-line {
+            margin-bottom: 5px;
+        }
+
+        .log-line.info {
+            color: #d1d5db;
+        }
+
+        .log-line.success {
+            color: #22c55e;
+        }
+
+        .log-line.error {
+            color: #ef4444;
+        }
+
+        .log-line.warning {
+            color: #fbbf24;
+        }
+
+        .log-timestamp {
+            color: #6b7280;
+        }
+
+        .actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            padding: 15px 35px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #a855f7 0%, #ec4899 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(168, 85, 247, 0.6);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #475569;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #64748b;
+        }
+
+        .status-alert {
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .status-alert.success {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid #22c55e;
+        }
+
+        .status-alert.error {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid #ef4444;
+        }
+
+        .status-alert-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .status-alert-message {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .spinning {
+            display: inline-block;
+            animation: spin 1s linear infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Moniteur de Déploiement</h1>
+            <p>Script: deploy-to-staging.sh</p>
+        </div>
+
+        <div class="branches-visual">
+            <div class="branch">
+                <div class="branch-circle develop">🌱</div>
+                <div class="branch-name" style="color: #22c55e;">develop</div>
+                <div class="branch-label">A - B - C</div>
+            </div>
+
+            <div class="arrow-container">
+                <div class="arrow-progress" id="arrow-progress"></div>
+                <div class="arrow-icon">→</div>
+            </div>
+
+            <div class="branch">
+                <div class="branch-circle staging">🚀</div>
+                <div class="branch-name" style="color: #3b82f6;">staging</div>
+                <div class="branch-label" id="staging-label">A - B</div>
+            </div>
+        </div>
+
+        <div class="diagram-section" id="diagram-section" style="display: none;">
+            <h2>🔍 État des branches</h2>
+            <div class="diagram-box" id="diagram-content"></div>
+        </div>
+
+        <div class="steps-container">
+            <h2>Étapes de déploiement</h2>
+            <div id="steps-list"></div>
+        </div>
+
+        <div class="console">
+            <h2>📋 Console (sortie du script bash)</h2>
+            <div class="console-output" id="console-output">
+                <div class="log-line info">En attente de déploiement...</div>
+            </div>
+        </div>
+
+        <div class="actions">
+            <button class="btn btn-primary" id="deploy-btn" onclick="startDeployment()">
+                🚀 Lancer deploy-to-staging.sh
+            </button>
+            <button class="btn btn-secondary" id="reset-btn" onclick="resetDeployment()" style="display: none;">
+                🔄 Réinitialiser
+            </button>
+        </div>
+
+        <div id="status-alert"></div>
+    </div>
+
+    <script>
+        // Étapes exactes du script bash deploy-to-staging.sh
+        const steps = [
+            { id: 1, name: '🔍 Vérifier si on est dans un repository Git', icon: '📁', duration: 800, bashCmd: 'git rev-parse --git-dir' },
+            { id: 2, name: '🛑 Vérifier modifications non commitées', icon: '⚠️', duration: 1000, bashCmd: 'git diff-index --quiet HEAD' },
+            { id: 3, name: '📋 Sauvegarder la branche actuelle', icon: '💾', duration: 600, bashCmd: 'CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)' },
+            { id: 4, name: '✅ Vérifier que develop et staging existent', icon: '🔍', duration: 800, bashCmd: 'git show-ref --verify refs/heads/...' },
+            { id: 5, name: '🌐 Mettre à jour les branches (fetch)', icon: '📥', duration: 1500, bashCmd: 'git fetch origin' },
+            { id: 6, name: '🔀 Checkout staging + pull', icon: '🔄', duration: 1200, bashCmd: 'git checkout staging && git pull origin staging' },
+            { id: 7, name: '⚡ Vérifier si merge nécessaire', icon: '🔎', duration: 800, bashCmd: 'git merge-base --is-ancestor develop staging' },
+            { id: 8, name: '🔨 Merge develop → staging', icon: '⚡', duration: 1400, bashCmd: 'git merge develop -m "Auto-deploy"' },
+            { id: 9, name: '🌐 Push staging vers origin', icon: '☁️', duration: 1600, bashCmd: 'git push origin staging' },
+            { id: 10, name: '↩️ Retour sur branche originale', icon: '🔙', duration: 600, bashCmd: 'git checkout $CURRENT_BRANCH' }
+        ];
+
+        let deployStatus = 'idle';
+        let currentStep = -1;
+        let currentBranch = 'develop';
+
+        function initSteps() {
+            const stepsList = document.getElementById('steps-list');
+            stepsList.innerHTML = steps.map((step, index) => `
+                <div class="step" id="step-${index}">
+                    <div class="step-icon" id="step-icon-${index}">⏱️</div>
+                    <div class="step-name">${step.name}</div>
+                    <div>${step.icon}</div>
+                </div>
+            `).join('');
+        }
+
+        function addLog(message, type = 'info') {
+            const consoleOutput = document.getElementById('console-output');
+            const timestamp = new Date().toLocaleTimeString();
+            const logLine = document.createElement('div');
+            logLine.className = `log-line ${type}`;
+            logLine.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> ${message}`;
+            consoleOutput.appendChild(logLine);
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        function updateStepStatus(index, status) {
+            const step = document.getElementById(`step-${index}`);
+            const icon = document.getElementById(`step-icon-${index}`);
+
+            step.className = 'step';
+
+            if (status === 'active') {
+                step.classList.add('active');
+                icon.innerHTML = '<span class="spinning">⏳</span>';
+            } else if (status === 'completed') {
+                step.classList.add('completed');
+                icon.innerHTML = '✅';
+            } else if (status === 'error') {
+                step.classList.add('error');
+                icon.innerHTML = '❌';
+            }
+        }
+
+        function updateProgress(percent) {
+            document.getElementById('arrow-progress').style.width = `${percent}%`;
+        }
+
+        function showDiagram(content) {
+            const diagramSection = document.getElementById('diagram-section');
+            const diagramContent = document.getElementById('diagram-content');
+            diagramSection.style.display = 'block';
+            diagramContent.textContent = content;
+        }
+
+        function showStatusAlert(type, title, message) {
+            const alertDiv = document.getElementById('status-alert');
+            alertDiv.className = `status-alert ${type}`;
+            alertDiv.innerHTML = `
+                <div class="status-alert-title">${title}</div>
+                <div class="status-alert-message">${message}</div>
+            `;
+        }
+
+        async function startDeployment() {
+            if (deployStatus === 'running') return;
+
+            deployStatus = 'running';
+            currentStep = -1;
+
+            document.getElementById('deploy-btn').disabled = true;
+            document.getElementById('deploy-btn').textContent = '⏳ Exécution en cours...';
+            document.getElementById('reset-btn').style.display = 'none';
+            document.getElementById('status-alert').innerHTML = '';
+            document.getElementById('console-output').innerHTML = '';
+
+            addLog('🚀 Déploiement de la branche develop vers staging', 'warning');
+            updateProgress(0);
+
+            for (let i = 0; i < steps.length; i++) {
+                currentStep = i;
+                updateStepStatus(i, 'active');
+
+                // Afficher la commande bash
+                addLog(`$ ${steps[i].bashCmd}`, 'info');
+
+                const progress = ((i + 1) / steps.length) * 100;
+                updateProgress(progress);
+
+                await new Promise(resolve => setTimeout(resolve, steps[i].duration));
+
+                // Simuler vérification modifications (étape 2)
+                if (i === 1) {
+                    // 20% de chance d'avoir des modifications non commitées
+                    if (Math.random() > 0.8) {
+                        updateStepStatus(i, 'error');
+                        addLog('❌ Modifications non commitées détectées', 'error');
+                        addLog('M  src/js/app.js', 'error');
+                        deployStatus = 'failed';
+                        document.getElementById('deploy-btn').disabled = false;
+                        document.getElementById('deploy-btn').textContent = '🚀 Lancer deploy-to-staging.sh';
+                        document.getElementById('reset-btn').style.display = 'inline-block';
+                        showStatusAlert('error', '❌ Déploiement échoué', 'Modifications non commitées détectées. Commitez ou stash vos changements.');
+                        return;
+                    }
+                }
+
+                // Afficher la branche actuelle (étape 3)
+                if (i === 2) {
+                    addLog(`📋 Branche actuelle: ${currentBranch}`, 'success');
+                }
+
+                // Afficher diagramme avant fusion (étape 5)
+                if (i === 4) {
+                    showDiagram(`🔍 État avant fusion :
+
+develop 🌱 : A - B - C   (3 commits sur develop)
+staging 🚀: A - B       (2 commits sur staging)
+
+Objectif : fusionner 🌱 → 🚀`);
+                    addLog('📥 Mise à jour des branches...', 'info');
+                }
+
+                // Afficher animation merge (étape 8)
+                if (i === 7) {
+                    addLog('🔄 Fusion en cours...', 'warning');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    showDiagram(`Avant merge :
+🌱 develop: A - B - C
+🚀 staging: A - B
+
+Fusion → 🚀 staging reçoit commit C de 🌱 develop
+
+Après merge :
+🌱 develop: A - B - C
+🚀 staging: A - B - C ✅`);
+                    document.getElementById('staging-label').textContent = 'A - B - C ✅';
+                }
+
+                // Push réussi (étape 9)
+                if (i === 8) {
+                    addLog('🎉 Merge et push réussis!', 'success');
+                }
+
+                // Retour branche originale (étape 10)
+                if (i === 9) {
+                    addLog(`↩️ Retour sur la branche: ${currentBranch}`, 'info');
+                }
+
+                updateStepStatus(i, 'completed');
+                addLog(`✅ ${steps[i].name.replace(/^[^ ]+ /, '')}`, 'success');
+            }
+
+            // Diagramme final
+            showDiagram(`📊 Résumé visuel final :
+
+A = ancien commit
+B = ancien commit
+C = nouveau commit sur develop
+
+🌱 develop: A - B - C
+🚀 staging: A - B - C ✅`);
+
+            addLog('🎯 Déploiement terminé avec succès !', 'success');
+            deployStatus = 'success';
+            document.getElementById('deploy-btn').disabled = false;
+            document.getElementById('deploy-btn').textContent = '🚀 Lancer deploy-to-staging.sh';
+            document.getElementById('reset-btn').style.display = 'inline-block';
+            showStatusAlert('success', '✅ Déploiement réussi !', 'La branche develop a été fusionnée avec succès dans staging');
+        }
+
+        function resetDeployment() {
+            deployStatus = 'idle';
+            currentStep = -1;
+
+            document.getElementById('console-output').innerHTML = '<div class="log-line info">En attente de déploiement...</div>';
+            document.getElementById('status-alert').innerHTML = '';
+            document.getElementById('reset-btn').style.display = 'none';
+            document.getElementById('diagram-section').style.display = 'none';
+            document.getElementById('staging-label').textContent = 'A - B';
+            updateProgress(0);
+
+            initSteps();
+        }
+
+        // Initialisation
+        initSteps();
+    </script>
+</body>
+
+</html>
