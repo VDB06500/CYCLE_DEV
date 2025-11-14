@@ -406,16 +406,16 @@
     <script>
         // Étapes exactes du script bash deploy-to-staging.sh
         const steps = [
-            { id: 1, name: '🔍 Vérifier si on est dans un repository Git', icon: '📁', duration: 800, bashCmd: 'git rev-parse --git-dir' },
-            { id: 2, name: '🛑 Vérifier modifications non commitées', icon: '⚠️', duration: 1000, bashCmd: 'git diff-index --quiet HEAD' },
-            { id: 3, name: '📋 Sauvegarder la branche actuelle', icon: '💾', duration: 600, bashCmd: 'CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)' },
-            { id: 4, name: '✅ Vérifier que develop et staging existent', icon: '🔍', duration: 800, bashCmd: 'git show-ref --verify refs/heads/...' },
-            { id: 5, name: '🌐 Mettre à jour les branches (fetch)', icon: '📥', duration: 1500, bashCmd: 'git fetch origin' },
-            { id: 6, name: '🔀 Checkout staging + pull', icon: '🔄', duration: 1200, bashCmd: 'git checkout staging && git pull origin staging' },
-            { id: 7, name: '⚡ Vérifier si merge nécessaire', icon: '🔎', duration: 800, bashCmd: 'git merge-base --is-ancestor develop staging' },
-            { id: 8, name: '🔨 Merge develop → staging', icon: '⚡', duration: 1400, bashCmd: 'git merge develop -m "Auto-deploy"' },
-            { id: 9, name: '🌐 Push staging vers origin', icon: '☁️', duration: 1600, bashCmd: 'git push origin staging' },
-            { id: 10, name: '↩️ Retour sur branche originale', icon: '🔙', duration: 600, bashCmd: 'git checkout $CURRENT_BRANCH' }
+            { id: 1, name: '🔍 Vérifier si on est dans un repository Git', icon: '📁', duration: 1500, bashCmd: 'git rev-parse --git-dir' },
+            { id: 2, name: '🛑 Vérifier modifications non commitées', icon: '⚠️', duration: 2000, bashCmd: 'git diff-index --quiet HEAD' },
+            { id: 3, name: '📋 Sauvegarder la branche actuelle', icon: '💾', duration: 1200, bashCmd: 'CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)' },
+            { id: 4, name: '✅ Vérifier que develop et staging existent', icon: '🔍', duration: 1500, bashCmd: 'git show-ref --verify refs/heads/...' },
+            { id: 5, name: '🌐 Mettre à jour les branches (fetch)', icon: '📥', duration: 2500, bashCmd: 'git fetch origin' },
+            { id: 6, name: '🔀 Checkout staging + pull', icon: '🔄', duration: 2000, bashCmd: 'git checkout staging && git pull origin staging' },
+            { id: 7, name: '⚡ Vérifier si merge nécessaire', icon: '🔎', duration: 1500, bashCmd: 'git merge-base --is-ancestor develop staging' },
+            { id: 8, name: '🔨 Merge develop → staging', icon: '⚡', duration: 2500, bashCmd: 'git merge develop -m "Auto-deploy"' },
+            { id: 9, name: '🌐 Push staging vers origin', icon: '☁️', duration: 2500, bashCmd: 'git push origin staging' },
+            { id: 10, name: '↩️ Retour sur branche originale', icon: '🔙', duration: 1200, bashCmd: 'git checkout $CURRENT_BRANCH' }
         ];
 
         let deployStatus = 'idle';
@@ -503,6 +503,9 @@
                 // Afficher la commande bash
                 addLog(`$ ${steps[i].bashCmd}`, 'info');
 
+                // Pause pour voir l'étape active
+                await new Promise(resolve => setTimeout(resolve, 300));
+
                 const progress = ((i + 1) / steps.length) * 100;
                 updateProgress(progress);
 
@@ -543,7 +546,9 @@ Objectif : fusionner 🌱 → 🚀`);
                 // Afficher animation merge (étape 8)
                 if (i === 7) {
                     addLog('🔄 Fusion en cours...', 'warning');
-                    await new Promise(resolve => setTimeout(resolve, 500));
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    addLog('Avant merge: develop (A-B-C) → staging (A-B)', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 800));
                     showDiagram(`Avant merge :
 🌱 develop: A - B - C
 🚀 staging: A - B
@@ -553,6 +558,7 @@ Fusion → 🚀 staging reçoit commit C de 🌱 develop
 Après merge :
 🌱 develop: A - B - C
 🚀 staging: A - B - C ✅`);
+                    await new Promise(resolve => setTimeout(resolve, 800));
                     document.getElementById('staging-label').textContent = 'A - B - C ✅';
                 }
 
