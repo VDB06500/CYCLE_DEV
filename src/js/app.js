@@ -33,6 +33,19 @@ function simulateDeployment(targetEnv) {
     }
 }
 
+function deployStaging() {
+    if (confirm("🧪 Déployer cette version en recette pour tests?")) {
+        fetch('../../scripts/deploy-staging.sh')
+            .then(response => response.text())
+            .then(data => {
+                alert(`Résultat du déploiement:\n${data}`);
+            })
+            .catch(err => {
+                alert(`❌ Erreur lors du déploiement: ${err}`);
+            });
+    }
+}
+
 // Initialisation
 document.addEventListener('DOMContentLoaded', function () {
     console.log('🚀 CYCLE_DEV - Application initialisée');
