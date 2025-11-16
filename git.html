@@ -498,26 +498,40 @@
 
             for (let i = 0; i < steps.length; i++) {
                 currentStep = i;
+                addLog(`\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
+                addLog(`🔄 ÉTAPE ${i + 1}/${steps.length}: ${steps[i].name}`, 'warning');
+                addLog(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`, 'info');
+
                 updateStepStatus(i, 'active');
 
                 // Afficher la commande bash
                 addLog(`$ ${steps[i].bashCmd}`, 'info');
 
                 // Pause pour voir l'étape active
-                await new Promise(resolve => setTimeout(resolve, 300));
+                await new Promise(resolve => setTimeout(resolve, 400));
 
                 const progress = ((i + 1) / steps.length) * 100;
                 updateProgress(progress);
 
-                await new Promise(resolve => setTimeout(resolve, steps[i].duration));
+                // Étape 1: Vérif Git
+                if (i === 0) {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('✓ Repository Git détecté', 'success');
+                    addLog('.git/HEAD trouvé', 'info');
+                }
 
-                // Simuler vérification modifications (étape 2)
+                // Étape 2: Check modifications
                 if (i === 1) {
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    addLog('Vérification des fichiers modifiés...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 600));
+
                     // 20% de chance d'avoir des modifications non commitées
                     if (Math.random() > 0.8) {
                         updateStepStatus(i, 'error');
                         addLog('❌ Modifications non commitées détectées', 'error');
                         addLog('M  src/js/app.js', 'error');
+                        addLog('Veuillez commiter ou stash vos changements', 'error');
                         deployStatus = 'failed';
                         document.getElementById('deploy-btn').disabled = false;
                         document.getElementById('deploy-btn').textContent = '🚀 Lancer deploy-to-staging.sh';
@@ -525,14 +539,29 @@
                         showStatusAlert('error', '❌ Déploiement échoué', 'Modifications non commitées détectées. Commitez ou stash vos changements.');
                         return;
                     }
+                    addLog('✓ Aucune modification non commitée', 'success');
                 }
 
-                // Afficher la branche actuelle (étape 3)
+                // Étape 3: Sauvegarde branche
                 if (i === 2) {
-                    addLog(`📋 Branche actuelle: ${currentBranch}`, 'success');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    addLog(`Branche actuelle: ${currentBranch}`, 'info');
+                    addLog(`✓ Branche sauvegardée: ${currentBranch}`, 'success');
                 }
 
-                // Afficher diagramme avant fusion (étape 5)
+                // Étape 4: Vérif branches
+                if (i === 3) {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('Vérification de la branche "develop"...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                    addLog('✓ Branche develop existe', 'success');
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                    addLog('Vérification de la branche "staging"...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 400));
+                    addLog('✓ Branche staging existe', 'success');
+                }
+
+                // Étape 5: Fetch
                 if (i === 4) {
                     showDiagram(`🔍 État avant fusion :
 
@@ -540,15 +569,45 @@ develop 🌱 : A - B - C   (3 commits sur develop)
 staging 🚀: A - B       (2 commits sur staging)
 
 Objectif : fusionner 🌱 → 🚀`);
-                    addLog('📥 Mise à jour des branches...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('Connexion à origin...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    addLog('Téléchargement des objets...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 800));
+                    addLog('✓ Mise à jour des références distantes', 'success');
                 }
 
-                // Afficher animation merge (étape 8)
+                // Étape 6: Checkout staging
+                if (i === 5) {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('Basculement vers staging...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog("Switched to branch 'staging'", 'info');
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('Récupération des derniers commits...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    addLog('✓ staging est à jour avec origin/staging', 'success');
+                }
+
+                // Étape 7: Check merge
+                if (i === 6) {
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('Analyse de l\'historique des commits...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('develop contient des commits plus récents', 'info');
+                    addLog('✓ Merge nécessaire', 'success');
+                }
+
+                // Étape 8: Merge
                 if (i === 7) {
-                    addLog('🔄 Fusion en cours...', 'warning');
+                    addLog('🔄 Début de la fusion...', 'warning');
                     await new Promise(resolve => setTimeout(resolve, 800));
                     addLog('Avant merge: develop (A-B-C) → staging (A-B)', 'info');
                     await new Promise(resolve => setTimeout(resolve, 800));
+                    addLog('Calcul des différences...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 700));
+                    addLog('Application des commits de develop...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 700));
                     showDiagram(`Avant merge :
 🌱 develop: A - B - C
 🚀 staging: A - B
@@ -558,22 +617,36 @@ Fusion → 🚀 staging reçoit commit C de 🌱 develop
 Après merge :
 🌱 develop: A - B - C
 🚀 staging: A - B - C ✅`);
-                    await new Promise(resolve => setTimeout(resolve, 800));
                     document.getElementById('staging-label').textContent = 'A - B - C ✅';
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('✓ Merge commit créé', 'success');
+                    addLog(`Message: "Auto-deploy: ${new Date().toISOString().slice(0, 19).replace('T', ' ')}"`, 'info');
                 }
 
-                // Push réussi (étape 9)
+                // Étape 9: Push
                 if (i === 8) {
+                    await new Promise(resolve => setTimeout(resolve, 700));
+                    addLog('Envoi vers origin/staging...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 900));
+                    addLog('Compression des objets...', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 700));
+                    addLog('Écriture des objets: 100% (3/3)', 'info');
+                    await new Promise(resolve => setTimeout(resolve, 600));
+                    addLog('✓ Push réussi vers origin/staging', 'success');
                     addLog('🎉 Merge et push réussis!', 'success');
                 }
 
-                // Retour branche originale (étape 10)
+                // Étape 10: Retour branche
                 if (i === 9) {
-                    addLog(`↩️ Retour sur la branche: ${currentBranch}`, 'info');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    addLog(`Retour sur ${currentBranch}...`, 'info');
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    addLog(`Switched to branch '${currentBranch}'`, 'info');
+                    addLog(`✓ De retour sur: ${currentBranch}`, 'success');
                 }
 
                 updateStepStatus(i, 'completed');
-                addLog(`✅ ${steps[i].name.replace(/^[^ ]+ /, '')}`, 'success');
+                addLog(`✅ Étape ${i + 1} terminée avec succès`, 'success');
             }
 
             // Diagramme final
